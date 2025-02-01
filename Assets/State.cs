@@ -58,6 +58,28 @@ public class State
     }
 }
 
+    public bool CanSeePlayer()
+    {
+        Vector3 direction = player.position - npc.tranfom.position;
+        float angle = Vector3.Angle(direction, npc.tranform.forward);
+
+        if(direction.magnitude < VisDist && angle < visAngle)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public bool CanAttackPlayer()
+    {
+        Vector3 direction = player.position - npc.tranfom.position;
+        if(direction.magnitude < shootDist)
+        {
+            return true;
+        }
+        return false;
+    }
+
 // Constructor for Idle state.
 public class Idle : State
 {
@@ -128,4 +150,74 @@ public class Patrol : State
         anim.ResetTrigger("isWalking"); // Makes sure that any events queued up for Walking are cleared out.
         base.Exit();
     }
+}
+
+public class Pursue: State{
+    public Pursue(GameObject _npc, NavMeshAgent _agent, Animator _anim, Transform _player)
+                : base(_npc, _agent, _anim, _player)
+                {
+                    name = State.STATE.PURSUE;
+                    agent.speed = 5;
+                    agent.isStopped = false;
+                }
+
+    public overrride void Enter()
+    {
+        anim.SetTrigger("isRunning");
+        base.Enter;
+    }
+    public overrride void Update()
+    {
+        agent.SetDestination(player.position);
+        if(agent.hasPath)
+        {
+            if(CanAttackPlayer()
+            {
+                nextState = new Attack(npc, agent, anim, player);
+                state = EVENT.EXIT
+            })
+            else if (!CanseePlayer())
+            {
+                nextState = new Patrol(npc, agent, anim, player);
+                stage = EVENT.EXIT;
+            }
+        }
+    }
+
+    public override void Exit()
+    {
+        anim.ResetTrigger("isRunning");
+        base.Exit();
+    }
+}
+
+public class Attack : State
+{
+    float rotationSpeed = 2.0f;
+    AudioSource shoot;
+    public Attack(GameObject _npc, NavMeshAgent _agent, Animator _anim, Transform _player)
+                : base(_npc, _agent, _anim, _player)
+                {
+                    name = STATE.ATTACK;
+                    shoot = _npc.GetComponent<AudioSource>();
+                }
+
+    public override void Enter()
+    {
+        anim.SetTrigger("isShooting");
+        agent.isStopped = true;
+        shoot.Play();
+        base.Enter();
+    }
+
+    public override void Update()
+    {
+        base.Update();
+    }
+
+    public override void Exit()
+    {
+        base.Exit();
+    }
+
 }
